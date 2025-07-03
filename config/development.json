@@ -1,0 +1,8 @@
+{
+  "port": 5000,
+  "jwtSecret": "yourSuperSecretKey",
+  "rateLimit": {
+    "windowMs": 900000,
+    "max": 100
+  }
+}
