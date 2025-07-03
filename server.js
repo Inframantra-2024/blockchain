@@ -11,7 +11,9 @@ const cookieParser = require('cookie-parser');
 const config = require('config');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoute.js');
+const merchantRoutes = require('./routes/merchantRoute.js');
 const errorHandler = require('./middleware/errorHandler.js');
+const feeRoutes = require('./routes/feeRoute.js')
 
 const app = express();
 
@@ -66,7 +68,10 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Routes
-app.use('/api/v1', authRoutes);
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/merchant',merchantRoutes);
+app.use('api/v1/fee',feeRoutes)
+
 
 // Error handling middleware
 app.use(errorHandler);

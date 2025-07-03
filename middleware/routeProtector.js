@@ -2,9 +2,9 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.js');
 const logger = require('../logger/logger.js');
 
-const protect = async (req, res, next) => {
+exports.protect = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    const token = req.cookies.token || req.header('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
       logger.warn('Access denied: No token provided');
@@ -28,5 +28,28 @@ const protect = async (req, res, next) => {
     return res.status(401).json({ success: false, error: 'Not authorized, token failed' });
   }
 };
+exports.authorizeRoles = (...allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      logger.warn('Role check failed: No user on request');
+      return res.status(401).json({
+        success: false,
+        message: 'Not authorized',
+        error: 'No user authenticated'
+      });
+    }
 
-module.exports = { protect };
+    if (!allowedRoles.includes(req.user.role)) {
+      logger.warn(`Access denied: ${req.user.email} with role ${req.user.role}`);
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied',
+        error: 'Insufficient permissions'
+      });
+    }
+
+    logger.info(`Access granted: ${req.user.email} as ${req.user.role}`);
+    next();
+  };
+};
+

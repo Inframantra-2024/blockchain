@@ -25,3 +25,28 @@ exports.loginValidation = [
 ];
 
 
+exports.changePasswordValidation = [
+  body('currentPassword', 'Current password is required').notEmpty(),
+  body('newPassword', 'New password must be at least 8 characters long').isLength({ min: 8 }),
+];
+
+
+exports.logoutValidation = [
+  body().custom((_, { req }) => {
+    if (!req.cookies || !req.cookies.token) {
+      throw new Error('No token found in cookies for logout');
+    }
+    return true;
+  })
+];
+
+
+
+exports.validateForgot = [
+  body('email').isEmail().withMessage('Valid email is required')
+];
+
+exports.validateReset = [
+  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
+];
+
