@@ -7,3 +7,7 @@ exports.blockMerchantValidator = [
   param('userId', 'Invalid merchant user ID')
     .isMongoId()
 ]
+exports.IdValidator = [
+  param('userId', 'Invalid merchant user ID')
+    .isMongoId()
+]

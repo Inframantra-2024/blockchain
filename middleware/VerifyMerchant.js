@@ -14,7 +14,7 @@ exports.apiAuth = async (req, res, next) => {
   try {
     const user = await User.findOne({ apiKey, apiSecret, role: 'merchant', approved: 'approved' });
 
-    if (!user) {
+    if (!user ) {
       return res.status(401).json({
         success: false,
         message: 'Invalid API credentials',

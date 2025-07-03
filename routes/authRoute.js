@@ -4,11 +4,11 @@ const router = express.Router();
 const { registerValidation, loginValidation, changePasswordValidation, logoutValidation, validateForgot, validateReset } = require('../validations/authValidation.js');
 const { validateRequest } = require('../middleware/validateIncomingRequest.js');
 const { register, login, logout , changePassword ,forgotPassword , resetPassword} = require('../controller/authController.js');
-const {protect} = require('../middleware/routeProtector.js')
+const { protect ,authorizeRoles } = require('../middleware/routeProtector.js')
 
 // @route   POST /api/auth/register
 // @desc    Register a new user or merchant
-router.post('/register', protect,registerValidation, validateRequest, register);
+router.post('/register', protect,authorizeRoles('admin', 'superadmin'),registerValidation, validateRequest, register);
 
 // @route   POST /api/auth/login
 // @desc    Login user or merchant

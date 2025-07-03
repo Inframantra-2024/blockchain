@@ -11,8 +11,11 @@ const cookieParser = require('cookie-parser');
 const config = require('config');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoute.js');
-const merchantRoutes = require('./routes/merchantRoute.js');
+const adminRoutes = require('./routes/adminRoute.js');
+const merchantRoute = require('./routes/merchantRoute.js')
 const errorHandler = require('./middleware/errorHandler.js');
+const widthdrawalRoute = require('./routes/widthdrawalRoute.js')
+const transactionRoute = require('./routes/transaction.js')
 const feeRoutes = require('./routes/feeRoute.js')
 
 const app = express();
@@ -69,8 +72,11 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/merchant',merchantRoutes);
+app.use('/api/v1/admin',adminRoutes);
 app.use('api/v1/fee',feeRoutes)
+app.use('api/v1/merchant',merchantRoute)
+app.use('api/v1/transaction',transactionRoute)
+app.use('/api/v1/withdrawal',widthdrawalRoute)
 
 
 // Error handling middleware

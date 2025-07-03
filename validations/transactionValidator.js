@@ -1,6 +1,6 @@
 const { body } = require('express-validator');
 
-exports.depositeTransactionValidator = [
+exports.initiateTransactionValidator = [
   body('amount')
     .exists().withMessage('Amount is required')
     .isFloat({ gt: 0 }).withMessage('Amount must be a number greater than 0'),
@@ -9,8 +9,13 @@ exports.depositeTransactionValidator = [
     .exists().withMessage('Currency type is required')
     .isIn(['USDT-TRC20', 'USDT-ERC20']).withMessage('Invalid currency type'),
 
-  body('wallet')
-    .exists().withMessage('Wallet address is required')
-    .isString().withMessage('Wallet must be a string')
-    .notEmpty().withMessage('Wallet address cannot be empty'),
 ];
+
+
+
+exports.validateDepositeTransaction = [
+  body('walletAddress')
+    .notEmpty()
+    .withMessage('Wallet address is required'),
+];
+
