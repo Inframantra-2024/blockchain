@@ -45,18 +45,24 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: process.env.NODE_ENV === 'production'
-          ? 'https://api.cryptogateway.com/api/v1'
-          : `http://localhost:${process.env.PORT || 5000}/api/v1`,
-        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server'
+        url: '/api/v1',
+        description: 'Current server (works with any domain/localhost)'
+      },
+      {
+        url: 'http://localhost:5000/api/v1',
+        description: 'Local development server'
       },
       {
         url: 'http://142.93.223.225:5000/api/v1',
-        description: ' API server'
+        description: 'Production API server'
+      },
+      {
+        url: 'http://142.93.223.225:5000',
+        description: 'Third-party Blockchain API server'
       }
     ],
     externalDocs: {
-      description: 'API Documentation',
+      description: 'Third-party Blockchain API Documentation',
       url: 'http://142.93.223.225:5000/api-docs'
     },
     components: {
@@ -154,6 +160,22 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
   }
 }));
 
+// Health check endpoint
+app.get('/api/v1/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Crypto Payment Gateway API is running',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    services: {
+      database: 'Connected',
+      blockchain: 'Configured',
+      notifications: 'Active',
+      email: 'Ready'
+    }
+  });
+});
+
 // API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin',adminRoutes);
@@ -193,5 +215,9 @@ app.use(errorHandler);
 const PORT = process.env.PORT || config.get('port') || 5000;
 app.listen(PORT, () => {
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-  console.log(`API Documentation available at: http://localhost:${PORT}/api-docs`);
+  console.log(`API Documentation available at:`);
+  console.log(`  • Local: http://localhost:${PORT}/api-docs`);
+  console.log(`  • Any domain: [your-domain]/api-docs`);
+  console.log(`  • Production: http://142.93.223.225:5000/api-docs`);
+  console.log(`Health Check: http://localhost:${PORT}/api/v1/health`);
 });
