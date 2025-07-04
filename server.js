@@ -142,23 +142,105 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// CORS configuration for universal access
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
+
 // Body parser & cookie parser
 app.use(express.json());
 app.use(cookieParser());
 
-// Swagger Documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Crypto Payment Gateway API Documentation',
-  swaggerOptions: {
-    persistAuthorization: true,
-    displayRequestDuration: true,
-    docExpansion: 'none',
-    filter: true,
-    showExtensions: true,
-    showCommonExtensions: true
-  }
-}));
+// Swagger Documentation - Universal access configuration
+app.use('/api-docs', swaggerUi.serve);
+app.get('/api-docs', (req, res) => {
+  // Get the current host and protocol from the request
+  const protocol = req.protocol;
+  const host = req.get('host');
+  const baseUrl = `${protocol}://${host}`;
+
+  // Create dynamic swagger spec with current server URL
+  const dynamicSwaggerSpec = {
+    ...swaggerSpec,
+    servers: [
+      {
+        url: `${baseUrl}/api/v1`,
+        description: `Current server (${host})`
+      },
+      {
+        url: '/api/v1',
+        description: 'Relative URL (works with any domain)'
+      },
+      {
+        url: 'http://localhost:5000/api/v1',
+        description: 'Local development server'
+      },
+      {
+        url: 'http://142.93.223.225:5000/api/v1',
+        description: 'Production API server'
+      },
+      {
+        url: 'http://142.93.223.225:5000',
+        description: 'Third-party Blockchain API server'
+      }
+    ]
+  };
+
+  // Serve Swagger UI with dynamic configuration
+  const swaggerUiIndexTemplate = swaggerUi.generateHTML(dynamicSwaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Crypto Payment Gateway API Documentation',
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      docExpansion: 'none',
+      filter: true,
+      showExtensions: true,
+      showCommonExtensions: true,
+      url: `${baseUrl}/api-docs/swagger.json`
+    }
+  });
+
+  res.send(swaggerUiIndexTemplate);
+});
+
+// Serve swagger.json dynamically
+app.get('/api-docs/swagger.json', (req, res) => {
+  const protocol = req.protocol;
+  const host = req.get('host');
+  const baseUrl = `${protocol}://${host}`;
+
+  const dynamicSwaggerSpec = {
+    ...swaggerSpec,
+    servers: [
+      {
+        url: `${baseUrl}/api/v1`,
+        description: `Current server (${host})`
+      },
+      {
+        url: '/api/v1',
+        description: 'Relative URL (works with any domain)'
+      },
+      {
+        url: 'http://localhost:5000/api/v1',
+        description: 'Local development server'
+      },
+      {
+        url: 'http://142.93.223.225:5000/api/v1',
+        description: 'Production API server'
+      }
+    ]
+  };
+
+  res.json(dynamicSwaggerSpec);
+});
 
 // Health check endpoint
 app.get('/api/v1/health', (req, res) => {
@@ -213,11 +295,14 @@ app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || config.get('port') || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-  console.log(`API Documentation available at:`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  console.log(`📚 API Documentation (Universal Access):`);
   console.log(`  • Local: http://localhost:${PORT}/api-docs`);
-  console.log(`  • Any domain: [your-domain]/api-docs`);
-  console.log(`  • Production: http://142.93.223.225:5000/api-docs`);
-  console.log(`Health Check: http://localhost:${PORT}/api/v1/health`);
+  console.log(`  • IP: http://127.0.0.1:${PORT}/api-docs`);
+  console.log(`  • Network: http://[your-ip]:${PORT}/api-docs`);
+  console.log(`  • Production: http://142.93.223.225:${PORT}/api-docs`);
+  console.log(`  • Any domain: [domain]/api-docs`);
+  console.log(`🔍 Health Check: http://localhost:${PORT}/api/v1/health`);
+  console.log(`💡 API docs work with ANY base URL - localhost, IP, or domain!`);
 });
