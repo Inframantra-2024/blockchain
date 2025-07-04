@@ -1,6 +1,8 @@
 const Withdrawal = require('../models/withdrawal');
 const Fee = require('../models/FeeSetting');
 const User = require('../models/user');
+const adminNotification = require('../services/adminNotification');
+const logger = require('../logger/logger');
 
 exports.initiateWithdrawal = async (req, res, next) => {
   try {
@@ -36,6 +38,15 @@ exports.initiateWithdrawal = async (req, res, next) => {
     merchant.totalAmt -= amount;
     await merchant.save();
     await withdrawal.save();
+
+    // Notify Super Admin about withdrawal request
+    logger.info(`📢 Notifying Super Admin about withdrawal request from ${merchant.name}`);
+    await adminNotification.notifyWithdrawalRequest({
+      _id: withdrawal._id,
+      amount: amount,
+      feeAmount: feeAmount,
+      netAmount: finalAmount
+    }, merchant);
 
     res.status(201).json({ success: true, message: 'Withdrawal initiated', withdrawal });
   } catch (err) {
