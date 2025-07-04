@@ -54,15 +54,11 @@ const swaggerOptions = {
       },
       {
         url: 'http://142.93.223.225:5000/api/v1',
-        description: 'Production API server'
-      },
-      {
-        url: 'http://142.93.223.225:5000',
-        description: 'Third-party Blockchain API server'
+        description: 'Production server (your main API)'
       }
     ],
     externalDocs: {
-      description: 'Third-party Blockchain API Documentation',
+      description: 'Production API Documentation',
       url: 'http://142.93.223.225:5000/api-docs'
     },
     components: {
@@ -158,88 +154,28 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(cookieParser());
 
-// Swagger Documentation - Universal access configuration
-app.use('/api-docs', swaggerUi.serve);
-app.get('/api-docs', (req, res) => {
-  // Get the current host and protocol from the request
-  const protocol = req.protocol;
-  const host = req.get('host');
-  const baseUrl = `${protocol}://${host}`;
+// Swagger Documentation - Simplified universal access
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'Crypto Payment Gateway API Documentation',
+  swaggerOptions: {
+    persistAuthorization: true,
+    displayRequestDuration: true,
+    docExpansion: 'none',
+    filter: true,
+    showExtensions: true,
+    showCommonExtensions: true
+  }
+}));
 
-  // Create dynamic swagger spec with current server URL
-  const dynamicSwaggerSpec = {
-    ...swaggerSpec,
-    servers: [
-      {
-        url: `${baseUrl}/api/v1`,
-        description: `Current server (${host})`
-      },
-      {
-        url: '/api/v1',
-        description: 'Relative URL (works with any domain)'
-      },
-      {
-        url: 'http://localhost:5000/api/v1',
-        description: 'Local development server'
-      },
-      {
-        url: 'http://142.93.223.225:5000/api/v1',
-        description: 'Production API server'
-      },
-      {
-        url: 'http://142.93.223.225:5000',
-        description: 'Third-party Blockchain API server'
-      }
-    ]
-  };
-
-  // Serve Swagger UI with dynamic configuration
-  const swaggerUiIndexTemplate = swaggerUi.generateHTML(dynamicSwaggerSpec, {
-    customCss: '.swagger-ui .topbar { display: none }',
-    customSiteTitle: 'Crypto Payment Gateway API Documentation',
-    swaggerOptions: {
-      persistAuthorization: true,
-      displayRequestDuration: true,
-      docExpansion: 'none',
-      filter: true,
-      showExtensions: true,
-      showCommonExtensions: true,
-      url: `${baseUrl}/api-docs/swagger.json`
-    }
-  });
-
-  res.send(swaggerUiIndexTemplate);
+// Additional route to ensure API docs work
+app.get('/docs', (req, res) => {
+  res.redirect('/api-docs');
 });
 
-// Serve swagger.json dynamically
-app.get('/api-docs/swagger.json', (req, res) => {
-  const protocol = req.protocol;
-  const host = req.get('host');
-  const baseUrl = `${protocol}://${host}`;
-
-  const dynamicSwaggerSpec = {
-    ...swaggerSpec,
-    servers: [
-      {
-        url: `${baseUrl}/api/v1`,
-        description: `Current server (${host})`
-      },
-      {
-        url: '/api/v1',
-        description: 'Relative URL (works with any domain)'
-      },
-      {
-        url: 'http://localhost:5000/api/v1',
-        description: 'Local development server'
-      },
-      {
-        url: 'http://142.93.223.225:5000/api/v1',
-        description: 'Production API server'
-      }
-    ]
-  };
-
-  res.json(dynamicSwaggerSpec);
+// Swagger JSON endpoint
+app.get('/api-docs.json', (req, res) => {
+  res.json(swaggerSpec);
 });
 
 // Health check endpoint
@@ -254,7 +190,28 @@ app.get('/api/v1/health', (req, res) => {
       blockchain: 'Configured',
       notifications: 'Active',
       email: 'Ready'
+    },
+    apiDocs: {
+      available: true,
+      urls: [
+        '/api-docs',
+        '/docs',
+        '/api-docs.json'
+      ]
     }
+  });
+});
+
+// Simple test endpoint to verify server is working
+app.get('/test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Server is working!',
+    timestamp: new Date().toISOString(),
+    host: req.get('host'),
+    protocol: req.protocol,
+    url: req.url,
+    baseUrl: `${req.protocol}://${req.get('host')}`
   });
 });
 
@@ -296,13 +253,15 @@ app.use(errorHandler);
 // Start server
 const PORT = process.env.PORT || config.get('port') || 5000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-  console.log(`📚 API Documentation (Universal Access):`);
+  console.log(`🚀 Crypto Payment Gateway API Server`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+  console.log(`🌐 Port: ${PORT}`);
+  console.log(`📚 API Documentation:`);
   console.log(`  • Local: http://localhost:${PORT}/api-docs`);
-  console.log(`  • IP: http://127.0.0.1:${PORT}/api-docs`);
-  console.log(`  • Network: http://[your-ip]:${PORT}/api-docs`);
   console.log(`  • Production: http://142.93.223.225:${PORT}/api-docs`);
-  console.log(`  • Any domain: [domain]/api-docs`);
-  console.log(`🔍 Health Check: http://localhost:${PORT}/api/v1/health`);
-  console.log(`💡 API docs work with ANY base URL - localhost, IP, or domain!`);
+  console.log(`  • Alternative: http://142.93.223.225:${PORT}/docs`);
+  console.log(`🔍 Health Check: http://142.93.223.225:${PORT}/api/v1/health`);
+  console.log(`🧪 Test Endpoint: http://142.93.223.225:${PORT}/test`);
+  console.log(`� Swagger JSON: http://142.93.223.225:${PORT}/api-docs.json`);
+  console.log(`💡 API docs work with ANY base URL!`);
 });

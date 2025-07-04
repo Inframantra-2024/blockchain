@@ -7,9 +7,10 @@ const logger = require('../logger/logger');
  */
 class BlockchainService {
   constructor() {
-    // Third-party Blockchain API Configuration
-    this.blockchainApiUrl = process.env.BLOCKCHAIN_API_URL || 'https://142.93.223.225:5000';
-    this.apiKey = process.env.BLOCKCHAIN_API_KEY || 'demo-api-key';
+    // Third-party Blockchain API Configuration (Future API - not available yet)
+    this.blockchainApiUrl = process.env.BLOCKCHAIN_API_URL || 'https://future-blockchain-api.com';
+    this.apiKey = process.env.BLOCKCHAIN_API_KEY || 'will-be-provided-later';
+    this.useRealApi = false; // Set to true when real blockchain API is available
 
     // Super Admin wallet addresses
     this.superAdminWallets = {
@@ -22,7 +23,7 @@ class BlockchainService {
     this.networkFee = 1; // $1 network fee
     this.requestTimeout = 15000; // 15 seconds timeout
 
-    logger.info(`🔗 Blockchain API configured: ${this.blockchainApiUrl}`);
+    logger.info(`🔗 Blockchain API configured: ${this.blockchainApiUrl} (Currently using dummy/fallback methods)`);
   }
 
   /**
