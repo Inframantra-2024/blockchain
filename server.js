@@ -73,9 +73,9 @@ app.use(cookieParser());
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/admin',adminRoutes);
-app.use('api/v1/fee',feeRoutes)
-app.use('api/v1/merchant',merchantRoute)
-app.use('api/v1/transaction',transactionRoute)
+app.use('/api/v1/fee',feeRoutes)
+app.use('/api/v1/merchant',merchantRoute)
+app.use('/api/v1/transaction',transactionRoute)
 app.use('/api/v1/withdrawal',widthdrawalRoute)
 
 

@@ -1,5 +1,5 @@
 const User = require('../models/user.js');
-const generateToken = require('../util/generateToken.js');
+const { generateToken }= require('../util/generateToken.js');
 const {generateResetTemplate } =  require('../util/generateResetTemplate.js')
 const logger = require('../logger/logger.js');
 const { error } = require('winston');
@@ -80,6 +80,7 @@ exports.login = async (req, res, next) => {
         error: 'Account not approved yet'
       });
     }
+    console.log(user,res)
 
     generateToken(user, res);
     logger.info(`Login successful for: ${email}`);
