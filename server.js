@@ -154,23 +154,64 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(cookieParser());
 
-// Swagger Documentation - Simplified universal access
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'Crypto Payment Gateway API Documentation',
-  swaggerOptions: {
-    persistAuthorization: true,
-    displayRequestDuration: true,
-    docExpansion: 'none',
-    filter: true,
-    showExtensions: true,
-    showCommonExtensions: true
-  }
-}));
+// Swagger Documentation - Simplified universal access with error handling
+try {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'Crypto Payment Gateway API Documentation',
+    swaggerOptions: {
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      docExpansion: 'none',
+      filter: true,
+      showExtensions: true,
+      showCommonExtensions: true
+    }
+  }));
+} catch (error) {
+  console.error('❌ Swagger UI setup failed:', error.message);
+
+  // Fallback API docs route
+  app.get('/api-docs', (req, res) => {
+    res.send(`
+      <html>
+        <head><title>API Documentation</title></head>
+        <body>
+          <h1>Crypto Payment Gateway API</h1>
+          <p>Swagger UI failed to load. Here are the available endpoints:</p>
+          <ul>
+            <li><a href="/api/v1/health">Health Check</a></li>
+            <li><a href="/test">Test Endpoint</a></li>
+            <li><a href="/api-docs.json">Swagger JSON</a></li>
+            <li><a href="/api-docs-debug">Debug Info</a></li>
+          </ul>
+          <p>Error: ${error.message}</p>
+        </body>
+      </html>
+    `);
+  });
+}
 
 // Additional route to ensure API docs work
 app.get('/docs', (req, res) => {
   res.redirect('/api-docs');
+});
+
+// Debug route to check if server is responding
+app.get('/api-docs-debug', (req, res) => {
+  res.json({
+    success: true,
+    message: 'API docs debug endpoint working',
+    swaggerEnabled: true,
+    availableRoutes: [
+      '/api-docs',
+      '/docs',
+      '/api-docs.json',
+      '/test',
+      '/api/v1/health'
+    ],
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Swagger JSON endpoint
