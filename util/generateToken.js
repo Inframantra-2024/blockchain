@@ -9,7 +9,7 @@ exports.generateToken = (user, res) => {
   res.cookie('token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production', // Use true in production (HTTPS)
-    sameSite: 'strict',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Allow cross-origin for Swagger
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
