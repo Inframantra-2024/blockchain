@@ -1,0 +1,848 @@
+{
+	"info": {
+		"_postman_id": "crypto-gateway-api-collection",
+		"name": "Crypto Payment Gateway API",
+		"description": "Complete API collection for the Crypto Payment Gateway with authentication, transactions, withdrawals, notifications, and statistics.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "crypto-gateway-api"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register Merchant (Admin Only)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Merchant\",\n  \"email\": \"merchant@example.com\",\n  \"password\": \"password123\",\n  \"walletAddress\": \"TQn9Y2khEsLJW1ChVWFMSMeRDow5KcbLSE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Login Merchant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.token) {",
+									"        pm.environment.set('authToken', response.token);",
+									"        pm.environment.set('apiKey', response.data.apiKey);",
+									"        console.log('Auth token and API key saved to environment');",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"merchant@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "auth", "logout"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin Management",
+			"item": [
+				{
+					"name": "Approve Merchant",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/approve/{{merchantId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "approve", "{{merchantId}}"]
+						}
+					}
+				},
+				{
+					"name": "Block Merchant",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/admin/block/{{merchantId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "admin", "block", "{{merchantId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get All Merchants",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/merchant?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "merchant"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Merchant by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/merchant/{{merchantId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "merchant", "{{merchantId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Merchant Transactions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/merchant/{{merchantId}}/transactions?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "merchant", "{{merchantId}}", "transactions"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "Create Transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data.transactionId) {",
+									"        pm.environment.set('transactionId', response.data.transactionId);",
+									"        pm.environment.set('walletAddress', response.data.walletAddress);",
+									"        console.log('Transaction ID and wallet address saved');",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/transaction/{{apiKey}}/create?amount=500&currencyType=USDT-TRC20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "transaction", "{{apiKey}}", "create"],
+							"query": [
+								{
+									"key": "amount",
+									"value": "500"
+								},
+								{
+									"key": "currencyType",
+									"value": "USDT-TRC20"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Confirm Deposit",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"transactionId\": \"{{transactionId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/transaction/{{apiKey}}/deposite",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "transaction", "{{apiKey}}", "deposite"]
+						}
+					}
+				},
+				{
+					"name": "Check Transaction Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/transaction/{{apiKey}}/status/{{transactionId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "transaction", "{{apiKey}}", "status", "{{transactionId}}"]
+						}
+					}
+				},
+				{
+					"name": "Get Transaction History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/transaction/{{apiKey}}/history?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "transaction", "{{apiKey}}", "history"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Transactions (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/transaction?page=1&limit=10&status=all",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "transaction"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								},
+								{
+									"key": "status",
+									"value": "all"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Cancel Transaction",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Customer request\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/transaction/{{apiKey}}/cancel/{{transactionId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "transaction", "{{apiKey}}", "cancel", "{{transactionId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Withdrawals",
+			"item": [
+				{
+					"name": "Initiate Withdrawal",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.withdrawal._id) {",
+									"        pm.environment.set('withdrawalId', response.withdrawal._id);",
+									"        console.log('Withdrawal ID saved');",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"amount\": 300\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/withdrawal",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "withdrawal"]
+						}
+					}
+				},
+				{
+					"name": "Get Withdrawal History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/withdrawal/history?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "withdrawal", "history"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Withdrawals (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/withdrawal?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "withdrawal"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Merchant Withdrawals (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/withdrawal/merchant/{{merchantId}}?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "withdrawal", "merchant", "{{merchantId}}"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Approve Withdrawal (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"action\": \"approve\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/withdrawal/{{withdrawalId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "withdrawal", "{{withdrawalId}}"]
+						}
+					}
+				},
+				{
+					"name": "Reject Withdrawal (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"action\": \"reject\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/withdrawal/{{withdrawalId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "withdrawal", "{{withdrawalId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Notifications (Admin)",
+			"item": [
+				{
+					"name": "Get All Notifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notifications?page=1&limit=20",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notifications"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Notification Summary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notifications/summary",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notifications", "summary"]
+						}
+					}
+				},
+				{
+					"name": "Mark Notification as Read",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notifications/{{notificationId}}/read",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notifications", "{{notificationId}}", "read"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Statistics (Admin)",
+			"item": [
+				{
+					"name": "Platform Overview",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notifications/stats/platform",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notifications", "stats", "platform"]
+						}
+					}
+				},
+				{
+					"name": "All Merchants Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notifications/stats/merchants?page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notifications", "stats", "merchants"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Specific Merchant Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/notifications/stats/merchant/{{merchantId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "notifications", "stats", "merchant", "{{merchantId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Fee Management (Admin)",
+			"item": [
+				{
+					"name": "Get Fee Settings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/fee",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "fee"]
+						}
+					}
+				},
+				{
+					"name": "Update Fee Settings",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{adminToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"withdrawalFeePercentage\": 2.5,\n  \"minimumWithdrawalAmount\": 50\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/fee",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "fee"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Merchant Management",
+			"item": [
+				{
+					"name": "Get Merchant Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/merchant/profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "merchant", "profile"]
+						}
+					}
+				},
+				{
+					"name": "Update Merchant Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Merchant Name\",\n  \"walletAddress\": \"TNewWalletAddress123456789012345678\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/merchant/profile",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "merchant", "profile"]
+						}
+					}
+				},
+				{
+					"name": "Get Merchant Balance",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{authToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/merchant/balance",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "merchant", "balance"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "System",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "health"]
+						}
+					}
+				},
+				{
+					"name": "Test Endpoint",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/test",
+							"host": ["{{baseUrl}}"],
+							"path": ["test"]
+						}
+					}
+				},
+				{
+					"name": "API Docs Debug",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api-docs-debug",
+							"host": ["{{baseUrl}}"],
+							"path": ["api-docs-debug"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-set base URL if not set",
+					"if (!pm.environment.get('baseUrl')) {",
+					"    pm.environment.set('baseUrl', 'http://142.93.223.225:5000');",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://142.93.223.225:5000",
+			"type": "string"
+		}
+	]
+}
